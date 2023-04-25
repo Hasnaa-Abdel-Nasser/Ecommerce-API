@@ -13,6 +13,9 @@ const brandSchema = mongoose.Schema({
     logo: String
 },{timestamp: true});
 
+brandSchema.post('init',(doc)=>{
+    console.log(doc)
+})
 const brandModel = mongoose.model('brand' , brandSchema);
 
 export default brandModel;

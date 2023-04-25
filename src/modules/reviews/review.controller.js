@@ -7,7 +7,7 @@ export const addReview = catchError(async(req , res,next)=>{
     const {rating , comment , userId , productId} = req.body;
     const review = await reviewModel.findOne({userId , productId});
     if(review)  next(new AppError('this user already add rating' , 400));
-    await reviewModel.insertMany({rating , comment , userId , productId});
+    await reviewModel.insertMany(req.body);
     const product = await productModel.findById(productId);
     let totalRating = ((product.ratingCount * product.ratingAvg) + rating)/(product.ratingCount+1);
     product.ratingCount += 1;

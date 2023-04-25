@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
-
+import * as dotenv from 'dotenv';
+dotenv.config();
 mongoose.set("strictQuery", true);
 
 const connect = mongoose
-  .connect("mongodb://127.0.0.1:27017/e-commerce")
+  .connect(process.env.DB_CONNECTION)
   .then(() => {
     console.log("Connected to MongoDB");
   })

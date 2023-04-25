@@ -15,9 +15,9 @@ const productSchema = mongoose.Schema({
     price: {
         type: Number ,
         required: [true , 'product price required'],
-       min : 1,
+        min : 1,
     },
-    priceAfterDiscount: Number , 
+    discount: Number , 
     discription: {
         type: String ,
         required: [true , 'product title required'],
@@ -28,7 +28,7 @@ const productSchema = mongoose.Schema({
         type: Number ,
         min: [1 , 'rating average must be greater then 1'],
         max: [5 , 'rating average must be less or equel then 5'],
-        default: 0
+        default: 1
     },
     ratingAvg:{
         type: Number ,

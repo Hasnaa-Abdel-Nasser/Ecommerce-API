@@ -3,17 +3,20 @@ import slugify from "slugify";
 import { AppError } from "../../utils/response.error.js";
 import { catchError } from "../../middleware/catch.errors.js";
 const addCategory = catchError(async(req , res)=>{
-    const {name} = req.body;
-    console.log(req.body);
-    const slug = slugify(name);
-    await categoryModel.insertMany({name , image: req.file['filename'] , slug});
+    req.body.slug = slugify(req.body.name);
+    const result = await cloudinary.uploader.upload(req.file.path,{ folder: "category" });
+    req.body.image = result.url;
+    await categoryModel.insertMany(req.body);
     res.status(200).json({message: "success"});
 })
 
 const updateCategory = catchError(async(req , res)=>{
-    const {_id ,name} = req.body;
-    const slug = slugify(name);
-    await categoryModel.findByIdAndUpdate(_id,{name , image: req.file['filename'] , slug});
+    if(req.body.file) req.body.slug = slugify(name);
+    if(req.file) {
+        const result = await cloudinary.uploader.upload(req.file.path,{ folder: "category" });
+        req.body.image = result.url;
+    }
+    await categoryModel.findByIdAndUpdate(req.body._id,req.body);
     res.status(200).json({message: "success"});
 })
 
