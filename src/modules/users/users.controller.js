@@ -9,7 +9,9 @@ import {
   signUpSchema,
   signInSchema,
 } from "../../middleware/user.validation.js";
-
+import cloudinary from "../../utils/cloudinary.js";
+import * as dotenv from 'dotenv';
+dotenv.config()
 export const signUp = catchError(async (req, res, next) => {
   const { error } = signUpSchema.validate(req.body);
   if (error) {
@@ -20,7 +22,7 @@ export const signUp = catchError(async (req, res, next) => {
   if (user) {
     next(new AppError("Email already exists", 400));
   }
-  const salt = await bcrypt.genSalt(10); //salt value to be dynamically generated for each user.(More Security)
+  const salt = await bcrypt.genSalt(Number(process.env.SALTROUNDS)); //salt value to be dynamically generated for each user.(More Security)
   const hashedPassword = await bcrypt.hash(password, salt);
   const newUser = new userModel({
     name,
@@ -61,16 +63,18 @@ export const forgetPassword = catchError(async (req, res) => {
 
 export const profilePic = catchError(async (req, res) => {
   if (!req.file) next(new AppError("Upload Image only", 400));
+  const result = await cloudinary.uploader.upload(req.file.path,{ folder: "user" });
+  req.body.profileImage = result.url;
   await userModel.updateOne(
     { email: req.userEmail },
-    { profileImage: req.file["filename"] }
+    req.body
   );
   res.status(200).json({ message: "successful" });
 });
 
 export const emailVerified = catchError(async (req, res, next) => {
   const { token } = req.params;
-  Jwt.verify(token, "123##456", async (err, decoded) => {
+  Jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
     if (err) next(new AppError(err, 400));
     await userModel.updateOne({ email: decoded.email }, { verified: true });
     return res.status(200).json({ message: "success" });
@@ -81,7 +85,7 @@ export const codeVerified = catchError(async (req, res, next) => {
   const { token } = req.params;
   const { code, newPassword } = req.body;
   if (token) next(new AppError("invalid token", 400));
-  Jwt.verify(token, "123##456", async (err, decoded) => {
+  Jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
     if (err) next(new AppError(err, 400));
     const user = await userModel.findOne({ email: decoded.email, code });
     if (!user) next(new AppError("invalid Inputs", 400));
@@ -100,7 +104,7 @@ export const newPassword = catchError(async (req, res, next) => {
   const user = await userModel.findOne({ email:req.userEmail});
   if (password == newPassword && bcrypt.compareSync(user.password , password))
     next(new AppError("Please enter other password", 400));
-  const salt = await bcrypt.genSalt(10); //salt value to be dynamically generated for each user.(More Security)
+  const salt = await bcrypt.genSalt(Number(process.env.SALTROUNDS)); //salt value to be dynamically generated for each user.(More Security)
   const hashedPassword = await bcrypt.hash(newPassword, salt);
   await userModel.updateOne(
     { email: req.userEmail },

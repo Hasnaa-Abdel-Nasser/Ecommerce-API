@@ -14,7 +14,19 @@ export class ApiFeatures{
         this.mongooseQuery.skip(skip).limit(10);
         return this;
     }
-
+    filter(){
+        let filterObj = {...this.queryString};
+        let excludedQuery = ['page' , 'sort' , 'fields' , 'keyword'];
+        excludedQuery.forEach((query)=>{
+            delete filterObj[query];
+        });
+        console.log(filterObj);
+        filterObj = JSON.stringify(filterObj);
+        filterObj = filterObj.replace(/\b(gt|gte|lt|lte)\b/g , match=>`$${match}`);
+        filterObj = JSON.parse(filterObj);
+        this.mongooseQuery.find(filterObj);
+        return this;
+    }
     fields(){
         if(this.queryString.fields){
             let fields = this.queryString.fields.split(',').join(' ');

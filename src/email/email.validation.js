@@ -1,19 +1,21 @@
 import nodemailer from 'nodemailer';
 import {html} from './email.verify.html.js'
 import Jwt  from "jsonwebtoken";
+import * as dotenv from 'dotenv'
+dotenv.config();
 
 const sendEmail =async(option)=>{
     let transporter = nodemailer.createTransport({
         service: "gmail",
         auth:{
-            user:"testy3832923@gmail.com",
-            pass:"tgnoyxyuqnfmvvlt"
+            user:process.env.EMAIL,
+            pass:process.env.EMAIL_PASSWORD
         }
     });
-    let token = Jwt.sign({email: option.email} , '123##456');
+    let token = Jwt.sign({email: option.email} , process.env.JWT_SECRET);
     console.log(token);
     let info = await transporter.sendMail({
-        from: '"ChkOut" <testy3832923@gmail.com>',
+        from: `"ChkOut" <${process.env.EMAIL}>`,
         to: option.email,
         subject: "ChkOut E-Commerce",
         html:html(token)
